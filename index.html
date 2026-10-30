@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pré-Projeto de Pesquisa - UnB</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Nosso CSS Personalizado -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- HEADER FIXO COM BARRINHAS -->
+  <header class="bg-slate-950 border-b border-slate-800 p-4 flex items-center justify-between sticky top-0 z-40 no-print">
+    <div class="flex items-center space-x-4">
+      <button onclick="toggleSidebar()" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-slate-800 transition focus:outline-none">
+        <i class="fa-solid fa-bars text-xl"></i>
+      </button>
+      <span class="font-semibold text-slate-300 text-sm">Painel de Pesquisa</span>
+    </div>
+  </header>
+
+  <!-- OVERLAY DO MENU -->
+  <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity"></div>
+
+  <!-- MENU LATERAL RETRÁTIL -->
+  <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-slate-950 p-6 border-r border-slate-800 flex flex-col justify-between z-50 transform -translate-x-full transition-transform duration-300 ease-in-out no-print shadow-2xl">
+    <div>
+      <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-800">
+        <span class="text-sm font-bold uppercase tracking-wider text-emerald-400">Navegação</span>
+        <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <nav class="space-y-2">
+        <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition bg-slate-800 text-emerald-400">
+          <i class="fa-solid fa-house w-5"></i>
+          <span>Início & Visão Geral</span>
+        </button>
+
+        <button onclick="switchTab('estrutura')" id="btn-estrutura" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800/50 hover:text-slate-200">
+          <i class="fa-solid fa-book-open w-5"></i>
+          <span>Projeto de Pesquisa</span>
+        </button>
+
+        <button onclick="switchTab('fichamento')" id="btn-fichamento" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800/50 hover:text-slate-200">
+          <i class="fa-solid fa-layer-group w-5"></i>
+          <span>Acervo & Fichamento</span>
+        </button>
+
+        <button onclick="switchTab('ideias')" id="btn-ideias" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800/50 hover:text-slate-200">
+          <i class="fa-solid fa-lightbulb w-5"></i>
+          <span>Mural de Insights</span>
+        </button>
+      </nav>
+    </div>
+
+    <div class="pt-6 border-t border-slate-800 space-y-3">
+      <button onclick="exportData()" class="w-full bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 py-2.5 px-3 rounded-lg flex items-center justify-center space-x-2 transition border border-slate-700">
+        <i class="fa-solid fa-download"></i>
+        <span>Exportar Dados (.json)</span>
+      </button>
+
+      <label class="w-full bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 py-2.5 px-3 rounded-lg flex items-center justify-center space-x-2 transition border border-slate-700 cursor-pointer">
+        <i class="fa-solid fa-upload"></i>
+        <span>Importar Dados</span>
+        <input type="file" id="importFile" onchange="importData(event)" accept=".json" class="hidden">
+      </label>
+
+      <button onclick="window.print()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white py-2.5 px-3 rounded-lg flex items-center justify-center space-x-2 transition">
+        <i class="fa-solid fa-print"></i>
+        <span>Imprimir / Salvar PDF</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ÁREA PRINCIPAL -->
+  <main class="flex-1 p-6 md:p-10 max-w-7xl w-full mx-auto space-y-8">
+    
+    <!-- ABA 1: INÍCIO / DASHBOARD -->
+    <section id="tab-dashboard" class="space-y-8">
+      
+      <!-- HERO BANNER -->
+      <div class="relative w-full h-80 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl flex items-center justify-center text-center p-6 group">
+        <img src="assets/tema.jpg" alt="Capa da Pesquisa" class="absolute inset-0 w-full h-full object-cover object-center filter brightness-50 group-hover:scale-105 transition duration-700" onerror="this.onerror=null; this.src='assets/tema.png';">
+        
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent"></div>
+
+        <div class="relative z-10 max-w-3xl space-y-3">
+          <h1 id="hero-title-display" class="text-3xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-md">
+            Diplomacia da Saúde
+          </h1>
+          <p id="hero-subtitle-display" class="text-slate-300 text-sm md:text-base font-medium max-w-2xl mx-auto drop-shadow">
+            Comunicação Intercultural, Acolhimento e Cooperação Internacional
+          </p>
+        </div>
+      </div>
+
+      <!-- SEÇÃO DO OBJETIVO DA PESQUISA -->
+      <div class="bg-slate-800/40 border border-slate-700/60 p-8 rounded-2xl space-y-4 shadow-xl">
+        <div class="flex items-center space-x-3 text-emerald-400">
+          <i class="fa-solid fa-bullseye text-2xl"></i>
+          <h2 class="text-xl font-bold text-white tracking-wide">Objetivo da Pesquisa</h2>
+        </div>
+        <p id="home-objetivo-display" class="text-slate-300 text-base leading-relaxed">
+          <em>O objetivo principal desta pesquisa será sincronizado automaticamente com o que você preencher na aba "Projeto de Pesquisa".</em>
+        </p>
+      </div>
+    </section>
+
+    <!-- ABA 2: ESTRUTURA DA PESQUISA -->
+    <section id="tab-estrutura" class="space-y-6 hidden">
+      <div>
+        <h2 class="text-2xl font-bold text-white">Escrita do Pré-Projeto</h2>
+        <p class="text-slate-400 text-sm">Preencha as seções acadêmicas essenciais solicitadas pela UnB.</p>
+      </div>
+
+      <div class="space-y-6 bg-slate-800/30 border border-slate-800 p-6 rounded-xl">
+        <div>
+          <label class="block text-sm font-medium text-emerald-400 mb-2">1. Título Provisório da Pesquisa</label>
+          <input type="text" id="doc-titulo" oninput="saveDocument()" placeholder="Ex: Diplomacia da Saúde" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-100 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-emerald-400 mb-2">2. Introdução & Problema de Pesquisa</label>
+          <textarea id="doc-problema" oninput="saveDocument()" rows="4" placeholder="Qual é a questão principal?" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-100 focus:outline-none focus:border-emerald-500"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-emerald-400 mb-2">3. Objetivos (Geral e Específicos)</label>
+          <textarea id="doc-objetivos" oninput="saveDocument()" rows="4" placeholder="Geral e Específicos..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-100 focus:outline-none focus:border-emerald-500"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-emerald-400 mb-2">4. Justificativa & Relevância</label>
+          <textarea id="doc-justificativa" oninput="saveDocument()" rows="4" placeholder="Por que este estudo é importante?" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-100 focus:outline-none focus:border-emerald-500"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-emerald-400 mb-2">5. Metodologia Proposta</label>
+          <textarea id="doc-metodologia" oninput="saveDocument()" rows="4" placeholder="Abordagem e instrumentos..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-100 focus:outline-none focus:border-emerald-500"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA 3: FICHAMENTO DE ARTIGOS -->
+    <section id="tab-fichamento" class="space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-white">Acervo & Fichamento</h2>
+          <p class="text-slate-400 text-sm">Cadastre e organize artigos e referências.</p>
+        </div>
+        <button onclick="toggleModal('modal-artigo')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm py-2 px-4 rounded-lg flex items-center space-x-2 transition">
+          <i class="fa-solid fa-plus"></i>
+          <span>Novo Fichamento</span>
+        </button>
+      </div>
+
+      <div class="bg-slate-800/40 border border-slate-800 p-3 rounded-lg flex items-center space-x-3">
+        <i class="fa-solid fa-magnifying-glass text-slate-500"></i>
+        <input type="text" id="search-fichamento" oninput="renderFichamentos()" placeholder="Buscar por título ou autor..." class="bg-transparent border-none w-full text-slate-200 focus:outline-none text-sm">
+      </div>
+
+      <div id="fichamentos-list" class="grid grid-cols-1 gap-4"></div>
+    </section>
+
+    <!-- ABA 4: MURAL DE IDEIAS -->
+    <section id="tab-ideias" class="space-y-6 hidden">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-2xl font-bold text-white">Mural de Insights & Brainstorm</h2>
+          <p class="text-slate-400 text-sm">Anotações rápidas e hipóteses.</p>
+        </div>
+        <button onclick="toggleModal('modal-ideia')" class="bg-amber-600 hover:bg-amber-500 text-white font-medium text-sm py-2 px-4 rounded-lg flex items-center space-x-2 transition">
+          <i class="fa-solid fa-plus"></i>
+          <span>Nova Ideia</span>
+        </button>
+      </div>
+
+      <div id="ideias-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+  </main>
+
+  <!-- MODAIS DE CADASTRO -->
+  <div id="modal-artigo" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-lg w-full space-y-4">
+      <h3 class="text-lg font-bold text-white">Cadastrar Fonte/Artigo</h3>
+      <input type="text" id="artigo-titulo" placeholder="Título da Obra / Artigo" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-100">
+      <div class="grid grid-cols-2 gap-3">
+        <input type="text" id="artigo-autor" placeholder="Autor(es)" class="bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-100">
+        <input type="number" id="artigo-ano" placeholder="Ano" class="bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-100">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <select id="artigo-status" class="bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-100">
+          <option value="Para Ler">Para Ler</option>
+          <option value="Lendo">Lendo</option>
+          <option value="Lido">Lido</option>
+        </select>
+        <input type="text" id="artigo-link" placeholder="Link / DOI" class="bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-100">
+      </div>
+      <textarea id="artigo-resumo" rows="4" placeholder="Resumo e citações importantes..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-100"></textarea>
+      <div class="flex justify-end space-x-3 pt-2">
+        <button onclick="toggleModal('modal-artigo')" class="px-4 py-2 text-sm text-slate-400 hover:text-slate-200">Cancelar</button>
+        <button onclick="addArtigo()" class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-500 font-medium text-white rounded-lg">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-ideia" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full space-y-4">
+      <h3 class="text-lg font-bold text-white">Adicionar Ideia / Insight</h3>
+      <input type="text" id="ideia-titulo" placeholder="Título rápido..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-100">
+      <textarea id="ideia-texto" rows="3" placeholder="Descrição da ideia..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-100"></textarea>
+      <div class="flex justify-end space-x-3 pt-2">
+        <button onclick="toggleModal('modal-ideia')" class="px-4 py-2 text-sm text-slate-400 hover:text-slate-200">Cancelar</button>
+        <button onclick="addIdeia()" class="px-4 py-2 text-sm bg-amber-600 hover:bg-amber-500 font-medium text-white rounded-lg">Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nosso Arquivo de Lógica Javascript -->
+  <script src="js/script.js"></script>
+</body>
+</html>
