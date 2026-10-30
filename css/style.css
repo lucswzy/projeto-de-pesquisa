@@ -4,12 +4,31 @@ body {
   font-family: 'Inter', sans-serif; 
 }
 
+/* Regras de Salvamento em PDF Limpo */
 @media print {
   .no-print { 
     display: none !important; 
   }
   body { 
-    background: white; 
-    color: black; 
+    background: white !important; 
+    color: black !important; 
+  }
+  main {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+  .a4-page {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 10mm !important;
+    min-height: auto !important;
+  }
+  textarea {
+    resize: none !important;
+    overflow: visible !important;
+    height: auto !important;
   }
 }

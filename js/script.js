@@ -1,16 +1,13 @@
 let appData = {
-  documento: { titulo: '', problema: '', objetivos: '', justificativa: '', metodologia: '' },
-  artigos: [],
-  ideias: []
+  documento: { titulo: '', conteudo: '' },
+  artigos: []
 };
 
-let chartLeiturasObj = null;
-let chartProgressoObj = null;
+let saveTimeout = null;
 
 window.addEventListener('DOMContentLoaded', () => {
   loadData();
-  initCharts();
-  renderAll();
+  renderFichamentos();
 });
 
 // Menu Lateral Retrátil
@@ -27,43 +24,65 @@ function loadData() {
   if (saved) {
     try { appData = JSON.parse(saved); } catch(e) {}
   }
-  document.getElementById('doc-titulo').value = appData.documento.titulo || '';
-  document.getElementById('doc-problema').value = appData.documento.problema || '';
-  document.getElementById('doc-objetivos').value = appData.documento.objetivos || '';
-  document.getElementById('doc-justificativa').value = appData.documento.justificativa || '';
-  document.getElementById('doc-metodologia').value = appData.documento.metodologia || '';
   
-  updateHeroTitle();
+  if (!appData.artigos) appData.artigos = [];
+  if (!appData.documento) appData.documento = { titulo: '', conteudo: '' };
+
+  const inputTitulo = document.getElementById('doc-titulo');
+  const inputConteudo = document.getElementById('doc-conteudo');
+
+  if (inputTitulo) inputTitulo.value = appData.documento.titulo || '';
+  if (inputConteudo) {
+    inputConteudo.value = appData.documento.conteudo || '';
+    ajustarAltura(inputConteudo);
+  }
+  
+  updateDisplays();
 }
 
-function updateHeroTitle() {
+function updateDisplays() {
   const titleDisplay = document.getElementById('hero-title-display');
-  if (appData.documento.titulo) {
+  if (titleDisplay && appData.documento.titulo) {
     titleDisplay.innerText = appData.documento.titulo;
   }
 }
 
 function saveData() {
   localStorage.setItem('unb_research_data', JSON.stringify(appData));
-  updateCharts();
-  updateStats();
-  updateHeroTitle();
+  updateDisplays();
+
+  // Exibir aviso discreto de "Salvo automaticamente"
+  const saveStatus = document.getElementById('save-status');
+  if (saveStatus) {
+    saveStatus.classList.remove('hidden');
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+      saveStatus.classList.add('hidden');
+    }, 2000);
+  }
 }
 
 function saveDocument() {
+  const tituloEl = document.getElementById('doc-titulo');
+  const conteudoEl = document.getElementById('doc-conteudo');
+
   appData.documento = {
-    titulo: document.getElementById('doc-titulo').value,
-    problema: document.getElementById('doc-problema').value,
-    objetivos: document.getElementById('doc-objetivos').value,
-    justificativa: document.getElementById('doc-justificativa').value,
-    metodologia: document.getElementById('doc-metodologia').value
+    titulo: tituloEl ? tituloEl.value : '',
+    conteudo: conteudoEl ? conteudoEl.value : ''
   };
   saveData();
 }
 
+function ajustarAltura(el) {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = (el.scrollHeight) + 'px';
+}
+
 function switchTab(tabId) {
   document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
-  document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+  const targetTab = document.getElementById(`tab-${tabId}`);
+  if (targetTab) targetTab.classList.remove('hidden');
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.remove('bg-slate-800', 'text-emerald-400');
@@ -80,7 +99,8 @@ function switchTab(tabId) {
 }
 
 function toggleModal(modalId) {
-  document.getElementById(modalId).classList.toggle('hidden');
+  const modal = document.getElementById(modalId);
+  if (modal) modal.classList.toggle('hidden');
 }
 
 function addArtigo() {
@@ -91,13 +111,26 @@ function addArtigo() {
   const link = document.getElementById('artigo-link').value;
   const resumo = document.getElementById('artigo-resumo').value;
 
-  if (!titulo) return alert('Por favor, preencha o título do artigo.');
+  if (!titulo) {
+    alert('Por favor, preencha o título do artigo.');
+    return;
+  }
 
-  appData.artigos.push({ id: Date.now(), titulo, autor, ano, status, link, resumo });
+  appData.artigos.push({ 
+    id: Date.now(), 
+    titulo, 
+    autor, 
+    ano, 
+    status, 
+    link, 
+    resumo 
+  });
+  
   saveData();
   renderFichamentos();
   toggleModal('modal-artigo');
 
+  // Limpar campos do modal
   document.getElementById('artigo-titulo').value = '';
   document.getElementById('artigo-autor').value = '';
   document.getElementById('artigo-ano').value = '';
@@ -115,12 +148,15 @@ function deleteArtigo(id) {
 
 function renderFichamentos() {
   const container = document.getElementById('fichamentos-list');
-  const search = document.getElementById('search-fichamento').value.toLowerCase();
+  const searchInput = document.getElementById('search-fichamento');
+  if (!container) return;
+  
+  const search = searchInput ? searchInput.value.toLowerCase() : '';
   container.innerHTML = '';
 
   const filtrados = appData.artigos.filter(a => 
     a.titulo.toLowerCase().includes(search) || 
-    a.autor.toLowerCase().includes(search)
+    (a.autor && a.autor.toLowerCase().includes(search))
   );
 
   if (filtrados.length === 0) {
@@ -153,156 +189,4 @@ function renderFichamentos() {
     `;
     container.appendChild(card);
   });
-}
-
-function addIdeia() {
-  const titulo = document.getElementById('ideia-titulo').value;
-  const texto = document.getElementById('ideia-texto').value;
-
-  if (!titulo) return alert('Insira um título para a ideia.');
-
-  appData.ideias.push({ id: Date.now(), titulo, texto });
-  saveData();
-  renderIdeias();
-  toggleModal('modal-ideia');
-
-  document.getElementById('ideia-titulo').value = '';
-  document.getElementById('ideia-texto').value = '';
-}
-
-function deleteIdeia(id) {
-  appData.ideias = appData.ideias.filter(i => i.id !== id);
-  saveData();
-  renderIdeias();
-}
-
-function renderIdeias() {
-  const container = document.getElementById('ideias-list');
-  container.innerHTML = '';
-
-  if (appData.ideias.length === 0) {
-    container.innerHTML = `<p class="text-slate-500 text-sm text-center py-8 col-span-full">Nenhuma ideia anotada ainda.</p>`;
-    return;
-  }
-
-  appData.ideias.forEach(i => {
-    const card = document.createElement('div');
-    card.className = 'bg-amber-950/20 border border-amber-800/40 p-4 rounded-xl space-y-2';
-    card.innerHTML = `
-      <div class="flex justify-between items-start">
-        <h4 class="font-semibold text-amber-200">${i.titulo}</h4>
-        <button onclick="deleteIdeia(${i.id})" class="text-amber-600 hover:text-amber-400">
-          <i class="fa-solid fa-xmark text-sm"></i>
-        </button>
-      </div>
-      <p class="text-xs text-slate-300">${i.texto}</p>
-    `;
-    container.appendChild(card);
-  });
-}
-
-function updateStats() {
-  document.getElementById('stat-total-artigos').innerText = appData.artigos.length;
-  document.getElementById('stat-lidos').innerText = appData.artigos.filter(a => a.status === 'Lido').length;
-  document.getElementById('stat-ideias').innerText = appData.ideias.length;
-
-  let secoes = 0;
-  if (appData.documento.titulo) secoes++;
-  if (appData.documento.problema) secoes++;
-  if (appData.documento.objetivos) secoes++;
-  if (appData.documento.justificativa) secoes++;
-  if (appData.documento.metodologia) secoes++;
-  document.getElementById('stat-secoes').innerText = `${secoes}/5`;
-}
-
-function initCharts() {
-  const ctxLeituras = document.getElementById('chartLeituras').getContext('2d');
-  chartLeiturasObj = new Chart(ctxLeituras, {
-    type: 'doughnut',
-    data: {
-      labels: ['Para Ler', 'Lendo', 'Lido'],
-      datasets: [{
-        data: [0, 0, 0],
-        backgroundColor: ['#78350f', '#1e3a8a', '#065f46'],
-        borderColor: '#0f172a'
-      }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8' } } } }
-  });
-
-  const ctxProgresso = document.getElementById('chartProgresso').getContext('2d');
-  chartProgressoObj = new Chart(ctxProgresso, {
-    type: 'bar',
-    data: {
-      labels: ['Título', 'Problema', 'Objetivos', 'Justificativa', 'Metodologia'],
-      datasets: [{
-        label: 'Status',
-        data: [0, 0, 0, 0, 0],
-        backgroundColor: '#10b981'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { max: 1, ticks: { stepSize: 1, callback: v => v === 1 ? 'Sim' : 'Não', color: '#94a3b8' } },
-        x: { ticks: { color: '#94a3b8' } }
-      },
-      plugins: { legend: { display: false } }
-    }
-  });
-}
-
-function updateCharts() {
-  if (!chartLeiturasObj || !chartProgressoObj) return;
-
-  const paraLer = appData.artigos.filter(a => a.status === 'Para Ler').length;
-  const lendo = appData.artigos.filter(a => a.status === 'Lendo').length;
-  const lido = appData.artigos.filter(a => a.status === 'Lido').length;
-
-  chartLeiturasObj.data.datasets[0].data = [paraLer, lendo, lido];
-  chartLeiturasObj.update();
-
-  const doc = appData.documento;
-  chartProgressoObj.data.datasets[0].data = [
-    doc.titulo ? 1 : 0,
-    doc.problema ? 1 : 0,
-    doc.objetivos ? 1 : 0,
-    doc.justificativa ? 1 : 0,
-    doc.metodologia ? 1 : 0
-  ];
-  chartProgressoObj.update();
-}
-
-function renderAll() {
-  renderFichamentos();
-  renderIdeias();
-  updateStats();
-  updateCharts();
-}
-
-function exportData() {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-  const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", "pesquisa_unb_dados.json");
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  downloadAnchor.remove();
-}
-
-function importData(event) {
-  const fileReader = new FileReader();
-  fileReader.onload = function(e) {
-    try {
-      appData = JSON.parse(e.target.result);
-      saveData();
-      loadData();
-      renderAll();
-      alert('Dados importados com sucesso!');
-    } catch(err) {
-      alert('Erro ao carregar o arquivo JSON.');
-    }
-  };
-  fileReader.readAsText(event.target.files[0]);
 }
